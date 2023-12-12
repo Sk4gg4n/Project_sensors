@@ -1,0 +1,53 @@
+#define pin_led 10
+#define pin_btn 8
+#define pin_pot 0
+
+bool st_btn, st_ptn_p = false, false;
+int val_pot;
+bool isRead = false;
+
+
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(pin_btn, INPUT_PULLUP);
+  pinMode(pin_led, OUTPUT);
+}
+
+void loop() {
+  
+  st_btn = digitalRead( pin_btn );
+
+  if( st_btn == 0 && st_ptn_p == 1){
+
+    delay(100);
+    isRead = !isRead;
+    if(isRead) {
+      Serial.println("start");
+    }
+    else {
+      Serial.println("end");
+    };
+
+    if(isRead) {
+      
+      digitalWrite(pin_led, HIGH);
+      val_pot = analogRead( pin_pot );
+      Serial.println("imu0");
+      Serial.println( val_pot );
+      Serial.println("nl");
+
+    }
+    else {
+      digitalWrite(pin_led, LOW);
+    };
+
+
+    st_ptn_p = st_btn;  
+
+  }
+
+
+
+
+}
