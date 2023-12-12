@@ -1,5 +1,5 @@
 #define pin_led 10
-#define pin_btn 8
+#define pin_btn 4
 #define pin_pot 0
 
 bool st_btn, st_ptn_p = false, false;
