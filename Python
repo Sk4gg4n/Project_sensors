@@ -1,1 +1,143 @@
+from datetime import datetime
+import xml.etree.ElementTree as ET
+from pathlib import Path
+import os
+import math as m
 
+
+def create_data_table(data_array):
+
+    data_table = []
+    for data_row in data_array:
+        data_table_row = ''
+        for i in range(len(data_row)):
+            if(i != len(data_row)-1):
+                data_table_row = data_table_row + str(data_row[i]) + '\t'
+            else:
+                data_table_row = data_table_row + str(data_row[i])
+        data_table_row = data_table_row + '\n'
+        data_table.append(data_table_row)
+
+    return data_table
+
+
+def ikinematickXML(tStart, tEnd, curDate, oSimDiplomaPath):
+    tree = ET.parse('ik_MV_test.xml')
+    root = tree.getroot()[0]
+
+    resultDic = {
+        "time_range": str(tStart) + " " + str(tEnd),
+        "output_motion_file": 'movement_' + curDate + '.sto',
+        "orientations_file": 'motion_' + curDate + '.sto'
+    }
+
+    fileName = 'ik_setup_' + curDate + '.xml'
+
+    for child in root:
+
+        if child.tag in resultDic.keys():
+            child.text = resultDic[child.tag]
+
+    tree.write(oSimDiplomaPath + '\\' + fileName)
+
+    return fileName
+
+
+def iplacerXML(base_imu_label, base_heading_axis, r_x, r_y, r_z, curDate, oSimDiplomaPath):
+
+    tree = ET.parse('ik_PL_test.xml')
+    root = tree.getroot()[0]
+
+    resultDic = {
+        "base_imu_label": base_imu_label,
+        "base_heading_axis": base_heading_axis,
+        "sensor_to_opensim_rotations": str(r_x) + " " + str(r_y) + " " + str(r_z),
+        "orientation_file_for_calibration": 'placement_' + curDate + '.sto'
+    }
+
+
+    fileName = 'ik_placement_' + curDate + '.xml'
+
+    for child in root:
+
+        if child.tag in resultDic.keys():
+            child.text = resultDic[child.tag]
+
+    tree.write(oSimDiplomaPath + '\\' + fileName)
+
+    return fileName
+
+
+
+
+headersArray = ["DataRate=100.000000",
+                "DataType=Quaternion",
+                "version=3",
+                "OpenSimVersion=4.1",
+                "endheader"]
+
+bodyArray = ['time']
+
+modelParts = ['humerus_imu', 'ulna_imu']
+
+for m_part in modelParts:
+    bodyArray.append(m_part)
+
+
+
+
+
+curTime = str(datetime.now().strftime('%Y-%m-%d %H-%M-%S'))
+oSimDiplomaPath = Path(Path.home() / "Documents" / "OpenSim" / "4.2" / "Models" / "diploma" / curTime)
+pattern_files_path = Path(Path.home() / "PycharmProjects" / "arduinoConnection")
+oSimDiplomaPath.mkdir(parents=True)
+
+resDirName = str(oSimDiplomaPath)
+os.chdir(resDirName)
+new_data_arr = [bodyArray]
+
+ik_file_name = 'motion_' + curTime + ".sto"
+t = 9
+
+for i in range(0, t*10):
+    time_stamp = i/10
+    deg = i*3
+    new_data_row = []
+    q1 = '0,0,0,0'
+    q2_1 = m.sin(m.radians(deg))/2
+    q2_2 = m.cos(m.radians(deg))/2
+    q2_3 = 0
+    q2_4 = 0
+    q2 = f'{q2_1}, {q2_2}, {q2_3}, {q2_4}'
+    new_data_row.append(deg)
+    new_data_row.append(q1)
+    new_data_row.append(q2)
+    new_data_arr.append(new_data_row)
+
+
+with open(ik_file_name, 'w') as file:
+
+    for header in headersArray:
+        file.write(header)
+        file.write('\n')
+
+    data_table = create_data_table(new_data_arr)
+    for data_row in data_table:
+        print(data_row)
+        file.write(data_row)
+    file.close()
+
+
+    with open('placement_' + curTime + ".sto", 'w') as file_pl:
+
+        for header in headersArray:
+            file_pl.write(header)
+            file_pl.write('\n')
+        file_pl.write(data_table[0])
+        file_pl.write(data_table[1])
+        file_pl.close()
+
+        pattern_files_dir = str(pattern_files_path)
+        os.chdir(pattern_files_dir)
+        ikinematickXML(0, t, curTime, resDirName)
+        iplacerXML(modelParts[0], "z", 0, 0, 0, curTime, resDirName)
