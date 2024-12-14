@@ -1,0 +1,71 @@
+#define HC_TRIG1 33
+#define HC_ECHO1 32
+#define HC_TRIG2 26
+#define HC_ECHO2 25
+#define HC_TRIG3 14
+#define HC_ECHO3 27
+#define HC_TRIG4 13
+#define HC_ECHO4 12
+#define pinLed 4
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(pinLed, OUTPUT);
+  pinMode(HC_TRIG1, OUTPUT);
+  pinMode(HC_ECHO1, INPUT);
+  pinMode(HC_TRIG2, OUTPUT);
+  pinMode(HC_ECHO2, INPUT);
+  pinMode(HC_TRIG3, OUTPUT);
+  pinMode(HC_ECHO3, INPUT);
+  pinMode(HC_TRIG4, OUTPUT);
+  pinMode(HC_ECHO4, INPUT);
+}
+
+void loop() {
+  float dist1 = getDist1();
+  float dist2 = getDist2();
+  float dist3 = getDist3();
+  float dist4 = getDist4();
+  if (dist1 > 5 or dist2 > 5 or dist3 > 5 or dist4 > 5) {
+    digitalWrite(pinLed, HIGH);
+  } else {
+    digitalWrite(pinLed, LOW);
+  }
+  delay(100);
+}
+
+float getDist1() {
+  digitalWrite(HC_TRIG1, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(HC_TRIG1, LOW);
+
+  uint32_t us = pulseIn(HC_ECHO1, HIGH);
+  return (us / 58.2);
+}
+
+float getDist2() {
+  digitalWrite(HC_TRIG2, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(HC_TRIG2, LOW);
+
+  uint32_t us = pulseIn(HC_ECHO2, HIGH);
+  return (us / 58.2);
+}
+
+float getDist3() {
+  digitalWrite(HC_TRIG3, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(HC_TRIG3, LOW);
+
+  uint32_t us = pulseIn(HC_ECHO3, HIGH);
+  return (us / 58.2);
+}
+
+float getDist4() {
+  digitalWrite(HC_TRIG4, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(HC_TRIG4, LOW);
+
+  uint32_t us = pulseIn(HC_ECHO4, HIGH);
+  return (us / 58.2);
+}
